@@ -1,17 +1,27 @@
-name: Java CI
+name: Build
 
-on: [push]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
+    name: "Run build"
     runs-on: ubuntu-latest
-
+        
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v1.2.1
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Use cache
+        uses: actions/cache@v2
         with:
-          java-version: '17'
-          maven-version: '3.8.3'
-      - name: Build with Maven
-        run: mvn clean install
+          path: ~/.m2
+          key: "${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}"
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Configure Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+          maven-version: 3.8.6
+      - name: "Run Maven"
+        shell: bash
+        run: mvn clean install --batch-mode
